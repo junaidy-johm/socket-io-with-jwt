@@ -30,6 +30,7 @@ const server = app.listen(4000, () => {
   const jwt = require("jwt-then");
   
   const Message = mongoose.model("Message")
+  const User = mongoose.model("User")
 
   io.use(async (socket, next) => {
     try {
@@ -57,16 +58,21 @@ const server = app.listen(4000, () => {
         console.log("a user left chatroom: "+ chatroomId)
     })
 
-    socket.on("chatroomMessage", async ({chatroomId, message})=>{
-        
-        if(message.trim().length > 0){
-            const user = await User.findOne({_id: socket.userId});
-            io.to(chatroomId).emit("newMessage",{
-                message,
-                user: user.name,
-                userId: socket.userId,
-            })
-        }
-    })
+    socket.on("chatroomMessage", async ({ chatroomId, message }) => {
+      if (message.trim().length > 0) {
+        const user = await User.findOne({ _id: socket.userId });
+        const newMessage = new Message({
+          chatroom: chatroomId,
+          user: socket.userId,
+          message,
+        });
+        io.to(chatroomId).emit("newMessage", {
+          message,          
+          userId: socket.userId,
+          name: user.name,
+        });
+        await newMessage.save();        
+      }
+    });
   });
 
