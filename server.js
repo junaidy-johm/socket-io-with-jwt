@@ -31,7 +31,7 @@ const server = app.listen(4000, () => {
   
   const Message = mongoose.model("Message")
   const User = mongoose.model("User")
-
+  io.set('transports', ['websocket']);
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.query.token;
@@ -71,7 +71,8 @@ const server = app.listen(4000, () => {
           userId: socket.userId,
           name: user.name,
         });
-        await newMessage.save();        
+        await newMessage.save();    
+            
       }
     });
   });
